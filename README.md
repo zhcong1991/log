@@ -1,0 +1,2 @@
+# cclog
+Logger for Golang
