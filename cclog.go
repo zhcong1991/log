@@ -105,7 +105,7 @@ func (ccLog *CCLog) record(level LogLevel, tag string, args ...interface {}) {
 		writer = os.Stderr
 	}
 	currentTime := time.Now()
-	logStr := fmt.Sprintf("%s %s [%s] %s %s", level.ShortString(), currentTime.Format("2006-01-02 15:04:05"), tag, ccLog.callStack(2), fmt.Sprintln(args...))
+	logStr := fmt.Sprintf("%s %s [%s] %s %s", level.ShortString(), currentTime.Format("2006-01-02 15:04:05"), tag, ccLog.callStack(3), fmt.Sprintln(args...))
 	writer.Write([]byte(logStr))
 
 	if ccLog.m_saveFlag {
