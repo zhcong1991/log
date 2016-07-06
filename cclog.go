@@ -30,6 +30,7 @@ func Info(tag string, args ...interface {}) {
 func Panic(tag string, args ...interface {}) {
 	args = append(args, "\n", string(debug.Stack()))
 	LogInstance.record(LogLevel_Panic, tag, args...)
+	panic(tag)
 }
 
 func Fatal(tag string, args ...interface {}) {
