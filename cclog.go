@@ -15,6 +15,10 @@ func Debug(tag string, args ...interface {}) {
 	LogInstance.record(LogLevel_Debug, tag, args...)
 }
 
+func Warning(tag string, args ...interface {}) {
+	LogInstance.record(LogLevel_Warning, tag, args...)
+}
+
 func Error(tag string, args ...interface {}) {
 	LogInstance.record(LogLevel_Error, tag, args...)
 }
@@ -26,19 +30,20 @@ func Info(tag string, args ...interface {}) {
 func Panic(tag string, args ...interface {}) {
 	args = append(args, "\n", string(debug.Stack()))
 	LogInstance.record(LogLevel_Panic, tag, args...)
-	panic(tag)
+//	panic(tag)
 }
 
 func Fatal(tag string, args ...interface {}) {
 	args = append(args, "\n", string(debug.Stack()))
 	LogInstance.record(LogLevel_Fatal, tag, args...)
-	os.Exit(-1)
+//	os.Exit(-1)
 }
 
-type LogLevel int
+type LogLevel = int32
 
 const (
 	LogLevel_Debug LogLevel = iota
+	LogLevel_Warning
 	LogLevel_Error
 	LogLevel_Info
 	LogLevel_Panic
@@ -46,18 +51,18 @@ const (
 )
 
 var (
-	logLevelShortString = []string{"D", "E", "I", "P", "F"}
-	logLevelString = []string{"Debug", "Error", "Info", "Panic", "Fatal"}
+	logLevelShortString = []string{"D", "W", "E", "I", "P", "F"}
+	logLevelString = []string{"Debug", "Warning", "Error", "Info", "Panic", "Fatal"}
 )
 
-func (level LogLevel) ShortString() string {
+func LogLevelShortString(level LogLevel) string {
 	if level < 0 || int(level) > len(logLevelShortString) {
 		return "U"
 	}
 	return logLevelShortString[level]
 }
 
-func (level LogLevel) String() string {
+func LogLevelString(level LogLevel) string {
 	if level < 0 || int(level) > len(logLevelString) {
 		return "Unknown"
 	}
@@ -72,15 +77,18 @@ type logRecord struct {
 }
 
 type CCLog struct {
-	m_logLevel	LogLevel
-	m_printFlag	bool
-	m_saveFlag 	bool
+	m_printLevel    LogLevel
+	m_storeLevel    LogLevel
+
+	m_printFlag	    bool
+	m_saveFlag 	    bool
 
 	m_recordChan chan logRecord
 }
 
-func (ccLog *CCLog) Init(level LogLevel, print bool, save bool) {
-	ccLog.m_logLevel = level
+func (ccLog *CCLog) Init(printLevel, storeLevel LogLevel, print bool, save bool) {
+	ccLog.m_printLevel = printLevel
+	ccLog.m_storeLevel = storeLevel
 	ccLog.m_printFlag = print
 	ccLog.m_saveFlag = save
 
@@ -91,32 +99,30 @@ func (ccLog *CCLog) Init(level LogLevel, print bool, save bool) {
 }
 
 func (ccLog *CCLog) record(level LogLevel, tag string, args ...interface {}) {
-	if level < ccLog.m_logLevel {
+	if level < ccLog.m_printLevel && level < ccLog.m_storeLevel {
 		return
 	}
-	currentTime := time.Now()
-	logStr := fmt.Sprintf("%s %s [%s] %s %s", level.ShortString(), currentTime.Format("2006-01-02 15:04:05"), tag, ccLog.callStack(3), fmt.Sprintln(args...))
-	printLog := logStr
-	var writer io.Writer
-	if LogLevel_Debug == level {
-		writer = os.Stdout
-		printLog = White(logStr)
-	}else if LogLevel_Info == level {
-		writer = os.Stdout
-		printLog = Green(logStr)
-	}else{
-		writer = os.Stderr
-		printLog = Red(logStr)
-	}
-	writer.Write([]byte(printLog))
 
-	if ccLog.m_saveFlag {
+	currentTime := time.Now()
+	logStr := fmt.Sprintf("%s %s [%s] %s %s", LogLevelShortString(level), currentTime.Format("2006-01-02 15:04:05"), tag, ccLog.callStack(3), fmt.Sprintln(args...))
+
+	if level >= ccLog.m_printLevel {
+		var writer io.Writer
+		if LogLevel_Debug == level || LogLevel_Info == level {
+			writer = os.Stdout
+		}else{
+			writer = os.Stderr
+		}
+		writer.Write([]byte(logStr))
+	}
+
+	if ccLog.m_saveFlag && level >= ccLog.m_storeLevel {
 		var record logRecord
 		record.timestamp = currentTime.Format("2006-01-02")
 		record.content = logStr
 		select {
 		case ccLog.m_recordChan <- record:
-		case <- time.After(time.Millisecond * 100):
+		case <- time.After(time.Millisecond * 10):
 		}
 	}
 }
