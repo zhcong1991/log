@@ -1,2 +1,2 @@
-# cclog
-Logger for Golang
+# log
+log system for golang
