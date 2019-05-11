@@ -1,15 +1,14 @@
-package cclog
+package log
 
 import (
 	"testing"
 )
 
 
-func TestCCLog(t *testing.T) {
-	LogInstance.Init(LogLevel_Debug, true, true)
+func TestLog(t *testing.T) {
 	Debug("Test", "Test Debug")
 	Error("Test", "Test Error")
 	Info("Test", "Test Info")
-	Panic("Test", "Test Panic")
+	Trace("Test", "Test Trace")
 	Fatal("Test", "Test Fatal")
 }
