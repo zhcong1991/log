@@ -4,28 +4,22 @@ import (
 	"os"
 )
 
-type ConsoleChannel struct {
+type Console struct {
 }
 
-func (channel *ConsoleChannel) GetType() string {
-	return LoggerChannel_Console
+func (w *Console) Name() string {
+	return "console"
 }
 
-func (channel *ConsoleChannel) Init(config string) error {
+func (w *Console) Init() error {
 	return nil
 }
 
-func (channel *ConsoleChannel) Write(level LogLevel, data []byte) error {
-	if level == LogLevel_Error || level == LogLevel_Fatal {
-		os.Stderr.Write(data)
-	} else {
-		os.Stdout.Write(data)
-	}
+func (w *Console) Write(r *record) error {
+	os.Stdout.Write(str2byte(r.String()))
 	return nil
 }
 
-func init() {
-	Register(LoggerChannel_Console, func() LoggerChannel {
-		return new(ConsoleChannel)
-	})
+func (w *Console) Flush() error {
+	return nil
 }

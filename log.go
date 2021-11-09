@@ -1,36 +1,25 @@
 package log
 
-func Debug(tag string, v ...interface{}) {
-	logger.writeLog(LogLevel_Debug, tag, v...)
+func Debug(tag string, f string, v ...interface{}) {
+	_logger.writeLog(DEBUG, tag, f, v...)
 }
 
-func Debugf(tag string, f string, v ...interface{}) {
-
+func Info(tag string, f string, v ...interface{}) {
+	_logger.writeLog(INFO, tag, f, v...)
 }
 
-func Trace(tag string, v ...interface{}) {
-	logger.writeLog(LogLevel_Trace, tag, v...)
+func Warn(tag string, f string, v ...interface{}) {
+	_logger.writeLog(WARN, tag, f, v...)
 }
 
-func Error(tag string, v ...interface{}) {
-	logger.writeLog(LogLevel_Error, tag, v...)
+func Error(tag string, f string, v ...interface{}) {
+	_logger.writeLog(ERROR, tag, f, v...)
 }
 
-func Info(tag string, v ...interface{}) {
-	logger.writeLog(LogLevel_Info, tag, v...)
+func Fatal(tag string, f string, v ...interface{}) {
+	_logger.writeLog(FATAL, tag, f, v...)
 }
 
-func Fatal(tag string, v ...interface{}) {
-	logger.writeLog(LogLevel_Fatal, tag, v...)
-}
-
-func SetChannel(channelType string, config string) error {
-	return logger.setChannel(channelType, config)
-}
-
-func init() {
-	err := SetChannel("console", "")
-	if err != nil {
-		panic(err)
-	}
+func Init(cfg *Config) {
+	_logger.Init(cfg)
 }
