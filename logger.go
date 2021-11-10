@@ -2,23 +2,34 @@ package log
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sync"
 	"time"
 )
 
 type Logger struct {
-	level  Level
-	close  chan bool
-	tunnel chan *record
+	level     Level
+	fileSplit string
+	close     chan bool
+	tunnel    chan *record
 
 	writers []Writer
 }
 
 func (l *Logger) Init(cfg *Config) {
-	l.level = cfg.level
-	l.writers = append(l.writers, &Console{})
+	l.level = cfg.LogLevel
+	for index, item := range cfg.Writes {
+		var writer Writer
+		switch item.Type {
+		case "console":
+			writer = NewConsole(&cfg.Writes[index])
+		case "file":
+			writer = NewFileWriter(&cfg.Writes[index])
+		default:
+			panic("unsupported writer type: " + item.Type)
+		}
+		l.writers = append(l.writers, writer)
+	}
 
 	go l.asyncWrite()
 }
@@ -61,6 +72,8 @@ func (l *Logger) asyncWrite() {
 		}
 	}
 
+	flushTimer := time.NewTimer(time.Millisecond * 1000)
+	splitTimer := time.NewTimer(time.Second * 5)
 	for {
 		select {
 		case r, ok = <-l.tunnel:
@@ -70,10 +83,24 @@ func (l *Logger) asyncWrite() {
 			}
 			for _, w := range l.writers {
 				if err := w.Write(r); err != nil {
-					log.Println(err)
+					_, _ = fmt.Fprintf(os.Stderr, "write to writer: %s failed, err: %v\n", w.Name(), err)
 				}
 			}
 			recordPool.Put(r)
+		case <-splitTimer.C:
+			for _, w := range l.writers {
+				if err := w.Split(); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "split writer: %s failed, err: %v\n", w.Name(), err)
+				}
+			}
+			splitTimer.Reset(time.Second * 5)
+		case <-flushTimer.C:
+			for _, w := range l.writers {
+				if err := w.Flush(); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "flush writer: %s failed, err: %v\n", w.Name(), err)
+				}
+			}
+			flushTimer.Reset(time.Millisecond * 1000)
 		}
 	}
 }

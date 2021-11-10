@@ -25,8 +25,16 @@ var (
 	logName = [MAX]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 )
 
+type WriterConfig struct {
+	Type      string `json:"type" toml:"type"`
+	LogLevel  Level  `json:"log_level" toml:"log_level"`
+	FilePath  string `json:"file_path" toml:"file_path"`
+	SplitUnit string `json:"split_unit" toml:"split_unit"`
+}
+
 type Config struct {
-	level Level
+	LogLevel Level          `json:"log_level" toml:"log_level"`
+	Writes   []WriterConfig `json:"writes" toml:"writes"`
 }
 
 type record struct {
@@ -43,9 +51,9 @@ func (r *record) String() string {
 
 type Writer interface {
 	Name() string
-	Init() error
 	Write(r *record) error
 	Flush() error
+	Split() error
 }
 
 func callStack(depth int) string {
