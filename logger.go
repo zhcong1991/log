@@ -19,13 +19,13 @@ type Logger struct {
 
 func (l *Logger) Init(cfg *Config) {
 	l.level = cfg.LogLevel
-	for index, item := range cfg.Writes {
+	for index, item := range cfg.Writers {
 		var writer Writer
 		switch item.Type {
 		case "console":
-			writer = NewConsole(&cfg.Writes[index])
+			writer = NewConsole(&cfg.Writers[index])
 		case "file":
-			writer = NewFileWriter(&cfg.Writes[index])
+			writer = NewFileWriter(&cfg.Writers[index])
 		default:
 			panic("unsupported writer type: " + item.Type)
 		}

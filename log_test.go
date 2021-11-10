@@ -8,7 +8,7 @@ import (
 func TestLog(t *testing.T) {
 	Init(&Config{
 		LogLevel: DEBUG,
-		Writes: []WriterConfig{
+		Writers: []WriterConfig{
 			{
 				Type:     "console",
 				LogLevel: DEBUG,

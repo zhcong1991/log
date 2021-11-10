@@ -35,7 +35,7 @@ type WriterConfig struct {
 
 type Config struct {
 	LogLevel Level          `json:"log_level" toml:"log_level"`
-	Writes   []WriterConfig `json:"writes" toml:"writes"`
+	Writers  []WriterConfig `json:"writers" toml:"writers"`
 }
 
 type record struct {
