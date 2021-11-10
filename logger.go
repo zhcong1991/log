@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -52,6 +53,21 @@ func (l *Logger) writeLog(level Level, tag string, f string, v ...interface{}) {
 
 	r := recordPool.Get().(*record)
 	r.level = level
+	r.timestamp = time.Now()
+	r.sourceCode = callStack(3)
+	r.tag = tag
+	r.content = fmt.Sprintf(f, v...)
+	l.tunnel <- r
+}
+
+func (l *Logger) writeLogCtx(level Level, ctx context.Context, tag string, f string, v ...interface{}) {
+	if level < l.level {
+		return
+	}
+
+	r := recordPool.Get().(*record)
+	r.level = level
+	r.ctx = ctx
 	r.timestamp = time.Now()
 	r.sourceCode = callStack(3)
 	r.tag = tag

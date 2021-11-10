@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"runtime"
@@ -39,6 +40,7 @@ type Config struct {
 
 type record struct {
 	level      Level
+	ctx        context.Context
 	timestamp  time.Time
 	sourceCode string
 	tag        string
@@ -46,6 +48,10 @@ type record struct {
 }
 
 func (r *record) String() string {
+	if r.ctx != nil && r.ctx.Value("trace") != nil {
+		trace := r.ctx.Value("trace").(string)
+		return fmt.Sprintf("[%s][%s][%s][%s]||trace=%s||%s\n", logName[r.level], r.timestamp.Format("2006-01-02T15:04:05.000-0700"), r.sourceCode, r.tag, trace, r.content)
+	}
 	return fmt.Sprintf("[%s][%s][%s][%s]||%s\n", logName[r.level], r.timestamp.Format("2006-01-02T15:04:05.000-0700"), r.sourceCode, r.tag, r.content)
 }
 

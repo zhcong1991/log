@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"testing"
 )
 
@@ -26,10 +27,10 @@ func TestLog(t *testing.T) {
 			},
 		},
 	})
-	Debug("Test", "Test Debug")
-	Warn("Test", "Test Trace")
-	Error("Test", "Test Error")
+	ctx := context.WithValue(context.TODO(), "trace", "abcefg")
 	Info("Test", "Test Info")
-	Fatal("Test", "Test Fatal")
+	InfoCtx(ctx,"Test", "Test Info")
+	Error("Test", "Test Error")
+	ErrorCtx(ctx,"Test", "Test Error")
 	_logger.Close()
 }
