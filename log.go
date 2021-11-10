@@ -45,3 +45,7 @@ func FatalCtx(ctx context.Context, tag string, f string, v ...interface{}) {
 func Init(cfg *Config) {
 	_logger.Init(cfg)
 }
+
+func Close() {
+	_logger.Close()
+}
