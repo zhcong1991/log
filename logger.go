@@ -53,6 +53,7 @@ func (l *Logger) writeLog(level Level, tag string, f string, v ...interface{}) {
 
 	r := recordPool.Get().(*record)
 	r.level = level
+	r.ctx = nil
 	r.timestamp = time.Now()
 	r.sourceCode = callStack(3)
 	r.tag = tag
