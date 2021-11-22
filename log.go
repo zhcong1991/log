@@ -46,6 +46,10 @@ func Init(cfg *Config) {
 	_logger.Init(cfg)
 }
 
+func DefaultLogger() *Logger {
+	return _logger
+}
+
 func Close() {
 	_logger.Close()
 }
