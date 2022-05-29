@@ -23,7 +23,8 @@ const (
 const tunnelDefaultSize = 5 * 1024
 
 var (
-	logName = [MAX]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	logName        = [MAX]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	logNameToLevel = map[string]Level{"debug": DEBUG, "info": INFO, "warn": WARN, "error": ERROR, "fatal": FATAL}
 )
 
 type WriterConfig struct {
@@ -34,7 +35,7 @@ type WriterConfig struct {
 }
 
 type Config struct {
-	LogLevel Level          `json:"log_level" toml:"log_level"`
+	LogLevel string         `json:"log_level" toml:"log_level"`
 	Writers  []WriterConfig `json:"writers" toml:"writers"`
 }
 

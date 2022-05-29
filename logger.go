@@ -18,7 +18,7 @@ type Logger struct {
 }
 
 func (l *Logger) Init(cfg *Config) {
-	l.level = cfg.LogLevel
+	l.level = logNameToLevel[cfg.LogLevel]
 	for index, item := range cfg.Writers {
 		var writer Writer
 		switch item.Type {
