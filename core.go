@@ -29,7 +29,7 @@ var (
 
 type WriterConfig struct {
 	Type      string `json:"type" toml:"type"`
-	LogLevel  Level  `json:"log_level" toml:"log_level"`
+	LogLevel  string `json:"log_level" toml:"log_level"`
 	FilePath  string `json:"file_path" toml:"file_path"`
 	SplitUnit string `json:"split_unit" toml:"split_unit"`
 }

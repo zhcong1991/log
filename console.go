@@ -30,6 +30,6 @@ func (w *Console) Split() error {
 
 func NewConsole(cfg *WriterConfig) *Console {
 	return &Console{
-		level: cfg.LogLevel,
+		level: logNameToLevel[cfg.LogLevel],
 	}
 }

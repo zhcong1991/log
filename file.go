@@ -2,10 +2,11 @@ package log
 
 import (
 	"bufio"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type FileWriter struct {
@@ -98,7 +99,7 @@ func (w *FileWriter) getFilePath() string {
 
 func NewFileWriter(cfg *WriterConfig) *FileWriter {
 	f := &FileWriter{
-		level:     cfg.LogLevel,
+		level:     logNameToLevel[cfg.LogLevel],
 		filePath:  cfg.FilePath,
 		splitUnit: cfg.SplitUnit,
 	}
