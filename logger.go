@@ -90,7 +90,6 @@ func (l *Logger) asyncWrite() {
 	}
 
 	flushTimer := time.NewTimer(time.Millisecond * 1000)
-	splitTimer := time.NewTimer(time.Second * 5)
 	for {
 		select {
 		case r, ok = <-l.tunnel:
@@ -104,13 +103,6 @@ func (l *Logger) asyncWrite() {
 				}
 			}
 			recordPool.Put(r)
-		case <-splitTimer.C:
-			for _, w := range l.writers {
-				if err := w.Split(); err != nil {
-					_, _ = fmt.Fprintf(os.Stderr, "split writer: %s failed, err: %v\n", w.Name(), err)
-				}
-			}
-			splitTimer.Reset(time.Second * 5)
 		case <-flushTimer.C:
 			for _, w := range l.writers {
 				if err := w.Flush(); err != nil {

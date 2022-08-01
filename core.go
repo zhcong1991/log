@@ -60,7 +60,6 @@ type Writer interface {
 	Name() string
 	Write(r *record) error
 	Flush() error
-	Split() error
 }
 
 func callStack(depth int) string {

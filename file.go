@@ -13,7 +13,7 @@ type FileWriter struct {
 	level          Level
 	filePath       string
 	splitUnit      string
-	currentLogFile string
+	backupFileName string
 	file           *os.File
 	writer         *bufio.Writer
 }
@@ -36,47 +36,16 @@ func (w *FileWriter) Write(r *record) error {
 }
 
 func (w *FileWriter) Flush() error {
-	if w.writer != nil {
-		return w.writer.Flush()
-	}
-	return nil
-}
-
-func (w *FileWriter) Split() error {
-	filePath := w.getFilePath()
-	if filePath == w.currentLogFile {
+	if w.writer == nil {
 		return nil
 	}
-
-	if w.writer != nil {
-		if err := w.writer.Flush(); err != nil {
-			return errors.WithMessage(err, "flush failed")
-		}
+	if err := w.writer.Flush(); err != nil {
+		return err
+	}
+	if w.getFilePath() != w.backupFileName {
+		return w.openExistingOrNew()
 	}
 
-	if w.file != nil {
-		if err := w.file.Close(); err != nil {
-			return errors.WithMessage(err, "close failed")
-		}
-	}
-
-	if err := os.MkdirAll(path.Dir(filePath), 0755); err != nil {
-		if !os.IsExist(err) {
-			return errors.WithMessage(err, "file exist")
-		}
-	}
-
-	if file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644); err != nil {
-		return errors.WithMessage(err, "open file failed")
-	} else {
-		w.file = file
-	}
-
-	if w.writer = bufio.NewWriterSize(w.file, 8192); w.writer == nil {
-		return errors.New("create file writer failed")
-	}
-
-	w.currentLogFile = filePath
 	return nil
 }
 
@@ -97,15 +66,48 @@ func (w *FileWriter) getFilePath() string {
 	return w.filePath + suffix
 }
 
+func (w *FileWriter) openExistingOrNew() error {
+	if err := os.MkdirAll(path.Dir(w.filePath), 0755); err != nil {
+		if !os.IsExist(err) {
+			return errors.WithMessage(err, "file exist")
+		}
+	}
+
+	if w.file != nil {
+		if err := w.file.Close(); err != nil {
+			return errors.WithMessage(err, "close failed")
+		}
+
+		if err := os.Rename(w.filePath, w.backupFileName); err != nil {
+			return errors.WithMessage(err, "rename log file failed")
+		}
+		w.file = nil
+		w.backupFileName = w.getFilePath()
+	}
+
+	if file, err := os.OpenFile(w.filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644); err != nil {
+		return errors.WithMessage(err, "open file failed")
+	} else {
+		w.file = file
+	}
+
+	if w.writer = bufio.NewWriterSize(w.file, 10240); w.writer == nil {
+		return errors.New("create file writer failed")
+	}
+
+	return nil
+}
+
 func NewFileWriter(cfg *WriterConfig) *FileWriter {
-	f := &FileWriter{
+	w := &FileWriter{
 		level:     logNameToLevel[cfg.LogLevel],
 		filePath:  cfg.FilePath,
 		splitUnit: cfg.SplitUnit,
 	}
-	err := f.Split()
+	w.backupFileName = w.getFilePath()
+	err := w.openExistingOrNew()
 	if err != nil {
 		panic(err)
 	}
-	return f
+	return w
 }
